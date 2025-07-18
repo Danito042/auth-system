@@ -5,7 +5,7 @@ import  { registerUser , loginUser, verifyUser} from "../controller/authControll
 const router = Router();
 
 router.route("/register").post(registerUser)
-router.route("/verify/:token").patch(verifyUser)
-router.route("/login/:id/:token").post(loginUser)
+router.route("/verify/:id").patch(verifyUser)  
+router.route("/login").post(loginUser)
 
 export default router;

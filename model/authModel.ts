@@ -19,8 +19,16 @@ const  authModel  = new Schema({
 
     },
     email: {
-        type: String,
-        required: [true, "pleas input email"]
+         type:String,
+        required:true,
+        trim:true,
+        toLowerCase:true,
+        match: [
+            /^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/,
+            "Please fill a valid email address",
+          ],
+          unique:true
+
     },
     password: {
         type: String

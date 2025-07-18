@@ -13,7 +13,7 @@ database()
 app.use(express.json())
 app.use("/user", authRouter)
 
-app.get("/", (_req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
     try {
         res.status(200).json({
             message: `welcome to user story`
