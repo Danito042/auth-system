@@ -43,8 +43,8 @@ export const registerUser = async (req: Request, res: Response) => {
 export const verifyUser = async (req: Request, res: Response) => {
     try {
         const { token } = req.params;
-        const verified: any = jwt.verify(token, process.env.SECRET!) // as { id : string};
-        const id = verified.id
+        const verified: any = jwt.verify(token, process.env.SECRET!) 
+        const id = verified.id  //person's  id gotten from jwt in params
         if (verified) {
             const checked = await authModel.findById(id);
             if (checked) {
