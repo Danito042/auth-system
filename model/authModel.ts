@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose"
 
-interface User {
+interface user {
     name: string,
     email: string
     password: string,
@@ -9,7 +9,7 @@ interface User {
     code: string,
 }
 
-interface userData extends User, mongoose.Document {}
+interface userData extends user, mongoose.Document {}
 
 const  authModel  = new Schema({
     name: {

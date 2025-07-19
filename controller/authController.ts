@@ -22,23 +22,16 @@ export const registerUser = async (req: Request, res: Response) => {
             email,
             password: hash,
             image: initial,
-            verified: true,
+            verified: false,
             code
         })
 
         const tokenID = jwt.sign({ id: user?._id }, process.env.SECRET!)
-        if (user) {
-            res.status(201).json({
-                message: `welcome ${user?.name}, you have sucessfully created an account`,
-                Data: user,
-                tokenID
-            })
-        } else {
-            res.status(404).json({
-                message: "Invalid registration",
-            })
-        }
-
+        res.status(201).json({
+            message: `welcome ${user?.name}, you have sucessfully created an account`,
+            Data: user,
+            tokenID
+        })
     } catch (error) {
         res.status(404).json({
             message: "error registering user",
@@ -49,70 +42,75 @@ export const registerUser = async (req: Request, res: Response) => {
 
 export const verifyUser = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params // userID gotten from jwt in params while registering
-        const { code } = req.body // code/token will be put it the body to verify also 
-        if (id && code) {
-            const User = await authModel.findByIdAndUpdate(id, { code }, { new: true })
-
-            if (User) {
-                res.status(200).json({
-                    message: `welcome ${User?.name}, you have been successfully verified`
-                });
-            } else {
-                res.status(400).json({
-                    message: `verification failed`
-                })
-            }
-        }
-    } catch (error) {
-        res.status(404).json({
-            message: "Error verifying  user",
-            data: error
-        })
-    }
-
-}
-
-// i had to put in ( verified : true), while registering 
-// and i think thats why it was able to login
-// cuz if i put in( verified : false),its gives me
-// "User not verified &&  token not cleared" 
-//  And i also  tired compromising  by deconstucting , but i think it was not needed
-// const { code = " " } = req.params   
-// console.log(code);                          
-export const loginUser = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    try {
-        const user = await authModel.findOne({ email, });
-        if (user) {
-            const checked = (user?.verified === true && user?.code === " ")
-
+        const { token } = req.params;
+        const verified: any = jwt.verify(token, process.env.SECRET!) // as { id : string};
+        const id = verified.id
+        if (verified) {
+            const checked = await authModel.findById(id);
             if (checked) {
-                res.status(201).json({
-                    message: "User verified && token  cleared"
+                const user = await authModel.findByIdAndUpdate(id, { code: " ", verified: true }, { new: true });
+                if (user) {
+                    res.status(200).json({
+                        message: `Welcome ${user.name}, you have been successfully verified`,
+                    });
+                } else {
+                    res.status(404).json({
+                        message: `not successfully verified`,
+                    })
+                }
+            } else {
+                res.status(404).json({
+                    message: "User not found"
                 });
             }
         } else {
-            res.status(401).json({
-                message: "User not verified &&  token not cleared"
+            res.status(404).json({
+                message: "Failed to find  token"
             });
         }
+    } catch (error: any) {
+        res.status(500).json({
+            message: "Error verifying user",
+            data: error
+        });
+    }
+}
+
+
+export const loginUser = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await authModel.findOne({ email });
+
         if (user) {
-            const checked = await bcrypt.compare(password, user?.password);
+            const checked = await bcrypt.compare(password, user.password);
             if (checked) {
-                res.status(201).json({
-                    message: `Welcome ${user?.name}`,
-                });
+
+                if (user.verified === true && user.code === " ") {
+                    res.status(201).json({
+                        message: `Welcome ${user.name}`,
+                    });
+                } else {
+                    res.status(400).json({
+                        message: "Please go and verify your account.",
+                    });
+                }
             } else {
                 res.status(400).json({
-                    message: "Password incorrect"
+                    message: "Incorrect password.",
                 });
             }
+        } else {
+            res.status(404).json({
+                message: "User not found. Please register.",
+            });
         }
+
     } catch (error) {
-        return res.status(500).json({
+        res.status(500).json({
             message: "Error logging user",
             error
-        });
+        })
     }
 };
